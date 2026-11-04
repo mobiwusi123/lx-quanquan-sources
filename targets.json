@@ -1,0 +1,188 @@
+{
+  "targets": [
+    {
+      "pkg": "com.huawei.associateassistant",
+      "apk": "/hw_product/app/HwAssociateAssistant/HwAssociateAssistant.apk"
+    },
+    {
+      "pkg": "com.huawei.videoeditor",
+      "apk": "/hw_product/app/HwVideoEditor/HwVideoEditor.apk"
+    },
+    {
+      "pkg": "com.huawei.browser",
+      "apk": "/hw_product/region_comm/china/app/HwBrowser/HwBrowser.apk"
+    },
+    {
+      "pkg": "com.huawei.easygo",
+      "apk": "/hw_product/region_comm/china/app/HwEasyGo/HwEasyGo.apk"
+    },
+    {
+      "pkg": "com.huawei.health",
+      "apk": "/hw_product/region_comm/china/app/HwHealthPlatform/HwHealthPlatform.apk"
+    },
+    {
+      "pkg": "com.huawei.ohos.smarthome",
+      "apk": "/system/app/AiLifeHm/AiLifeHm.apk"
+    },
+    {
+      "pkg": "com.huawei.hifolder",
+      "apk": "/system/app/HiFolder/HiFolder.apk"
+    },
+    {
+      "pkg": "com.huawei.hicloud",
+      "apk": "/system/app/HwCloud/HwCloud.apk"
+    },
+    {
+      "pkg": "com.huawei.hidisk",
+      "apk": "/system/app/HwCloudDrive/HwCloudDrive.apk"
+    },
+    {
+      "pkg": "com.huawei.hwpanpayservice",
+      "apk": "/system/app/HwPanPayService/HwPanPayService.apk"
+    },
+    {
+      "pkg": "com.huawei.parentcontrol",
+      "apk": "/system/app/HwParentControl/HwParentControl.apk"
+    },
+    {
+      "pkg": "com.huawei.vassistant",
+      "apk": "/system/app/HwVAssistant/HwVAssistant.apk"
+    },
+    {
+      "pkg": "com.huawei.wallet",
+      "apk": "/system/app/HwWallet/HwWallet.apk"
+    },
+    {
+      "pkg": "com.android.wallpaper.livepicker",
+      "apk": "/system/app/LiveWallpapersPicker/LiveWallpapersPicker.apk"
+    },
+    {
+      "pkg": "com.android.wallpaperbackup",
+      "apk": "/system/app/WallpaperBackup/WallpaperBackup.apk"
+    },
+    {
+      "pkg": "com.huawei.hicard",
+      "apk": "/system/priv-app/HiCard/HiCard.apk"
+    },
+    {
+      "pkg": "com.huawei.search",
+      "apk": "/system/priv-app/HiSearch/HiSearch.apk"
+    },
+    {
+      "pkg": "com.huawei.recsys",
+      "apk": "/system/priv-app/HwHiAIDSEngine/HwHiAIDSEngine.apk"
+    },
+    {
+      "pkg": "com.huawei.magazine",
+      "apk": "/system/priv-app/HwMagazine/HwMagazine.apk"
+    },
+    {
+      "pkg": "com.huawei.music.local",
+      "apk": "/system/priv-app/HwMusicLocal/HwMusicLocal.apk"
+    },
+    {
+      "pkg": "com.huawei.pcassistant",
+      "apk": "/system/priv-app/HwPCAssistant/HwPCAssistant.apk"
+    },
+    {
+      "pkg": "com.huawei.phoneservice",
+      "apk": "/system/priv-app/HwPhoneService/HwPhoneService.apk"
+    },
+    {
+      "pkg": "com.huawei.searchservice",
+      "apk": "/system/priv-app/HwSearchService/HwSearchService.apk"
+    },
+    {
+      "pkg": "com.huawei.tips",
+      "apk": "/system/priv-app/HwSmartSuggestion/HwSmartSuggestion.apk"
+    },
+    {
+      "pkg": "com.huawei.multimedia.hivideoplayengine",
+      "apk": "/system/priv-app/HwVideoKit/HwVideoKit.apk"
+    },
+    {
+      "pkg": "com.android.wallpapercropper",
+      "apk": "/system/priv-app/WallpaperCropper/WallpaperCropper.apk"
+    },
+    {
+      "pkg": "com.huawei.android.totemweather",
+      "apk": "/system/priv-app/HwWeatherClockHm/HwWeatherClockHm_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.browser.fa",
+      "apk": "/hw_product/region_comm/china/app/HwBrowserFAHm/entry_release_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.hidisk.fa",
+      "apk": "/system/app/HwCloudDriveFaHm/entry_release_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.music",
+      "apk": "/system/priv-app/HwMusic_cloudHm/HwMusic_cloudHm_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.notepad",
+      "apk": "/system/priv-app/HwNotePadHm/HwNotePadHm_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.ohos.health",
+      "apk": "/hw_product/app/HwHealthHm/HwHealthHm_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.ohos.search",
+      "apk": "/system/priv-app/HiSearchHm/search_pa_release_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.ohos.videoeditor",
+      "apk": "/system/app/HwVideoEditorFACard/entry_release_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.wallet.facard",
+      "apk": "/system/app/HwWalletFAHm/entry_release_signed_entry.apk"
+    },
+    {
+      "pkg": "com.huawei.himovie",
+      "apk": "/system/priv-app/HiMovie/HiMovie.apk"
+    },
+    {
+      "pkg": "com.huawei.himovie.local",
+      "apk": "/system/priv-app/HiMovieLocal/HiMovieLocal.apk"
+    },
+    {
+      "pkg": "com.huawei.himovie.partner1",
+      "apk": "/system/priv-app/HiMoviePartner1/HiMoviePartner1.apk"
+    },
+    {
+      "pkg": "com.huawei.himovie.partner2",
+      "apk": "/system/priv-app/HiMoviePartner2/HiMoviePartner2.apk"
+    },
+    {
+      "pkg": "com.tencent.qqlivehuawei",
+      "apk": "/system/priv-app/HiMovieTencent/HiMovieTencent.apk"
+    },
+    {
+      "pkg": "com.huawei.hmos.himovie.fa",
+      "apk": "/system/priv-app/HiCinemaFA/entry_release_signed_entry.apk"
+    },
+    {
+      "pkg": "com.sohu.sohuvideo.emplayer",
+      "apk": "/system/priv-app/HiMovieSohu/HiMovieSohu.apk"
+    },
+    {
+      "pkg": "com.huawei.hieduservice",
+      "apk": "/hw_product/region_comm/china/app/HiEduService/HiEduService.apk"
+    }
+  ],
+  "missing": [
+    "/hw_product/app/HwKidsMode/HwKidsMode.apk",
+    "/hw_product/region_comm/china/app/HwReader/HwReader.apk",
+    "/system/app/HwVideoEditor/HwVideoEditor.apk",
+    "/system/priv-app/HiHome/HiHome.apk",
+    "/system/priv-app/HwEmuiManualHm/HwEmuiManualHm_signed_entry.apk",
+    "/hw_product/app/HwMeetimeHm/HwMeetimeHm_signed_entry.apk",
+    "/system/delapp/HwVmall/HwVmall.apk",
+    "/system/app/MyCenter/MyCenter.apk",
+    "/hw_product/region_comm/china/app/HiEdu/HiEdu.apk",
+    "/system/priv-app/HwIntelligent/HwIntelligent.apk"
+  ]
+}

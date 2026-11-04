@@ -1,0 +1,210 @@
+[
+  {
+    "pkg": "com.huawei.associateassistant",
+    "dir": "/hw_product/app/HwAssociateAssistant"
+  },
+  {
+    "pkg": "com.huawei.videoeditor",
+    "dir": "/system/app/HwVideoEditor"
+  },
+  {
+    "pkg": "com.huawei.browser",
+    "dir": "/hw_product/region_comm/china/app/HwBrowser"
+  },
+  {
+    "pkg": "com.huawei.easygo",
+    "dir": "/hw_product/region_comm/china/app/HwEasyGo"
+  },
+  {
+    "pkg": "com.huawei.health",
+    "dir": "/hw_product/region_comm/china/app/HwHealthPlatform"
+  },
+  {
+    "pkg": "com.huawei.ohos.smarthome",
+    "dir": "/system/app/AiLifeHm"
+  },
+  {
+    "pkg": "com.huawei.hifolder",
+    "dir": "/system/app/HiFolder"
+  },
+  {
+    "pkg": "com.huawei.hicloud",
+    "dir": "/system/app/HwCloud"
+  },
+  {
+    "pkg": "com.huawei.hidisk",
+    "dir": "/system/app/HwCloudDrive"
+  },
+  {
+    "pkg": "com.huawei.hwpanpayservice",
+    "dir": "/system/app/HwPanPayService"
+  },
+  {
+    "pkg": "com.huawei.parentcontrol",
+    "dir": "/system/app/HwParentControl"
+  },
+  {
+    "pkg": "com.huawei.vassistant",
+    "dir": "/system/app/HwVAssistant"
+  },
+  {
+    "pkg": "com.huawei.wallet",
+    "dir": "/system/app/HwWallet"
+  },
+  {
+    "pkg": "com.android.wallpaper.livepicker",
+    "dir": "/system/app/LiveWallpapersPicker"
+  },
+  {
+    "pkg": "com.android.wallpaperbackup",
+    "dir": "/system/app/WallpaperBackup"
+  },
+  {
+    "pkg": "com.huawei.hicard",
+    "dir": "/system/priv-app/HiCard"
+  },
+  {
+    "pkg": "com.huawei.search",
+    "dir": "/system/priv-app/HiSearch"
+  },
+  {
+    "pkg": "com.huawei.recsys",
+    "dir": "/system/priv-app/HwHiAIDSEngine"
+  },
+  {
+    "pkg": "com.huawei.magazine",
+    "dir": "/system/priv-app/HwMagazine"
+  },
+  {
+    "pkg": "com.huawei.music.local",
+    "dir": "/system/priv-app/HwMusicLocal"
+  },
+  {
+    "pkg": "com.huawei.pcassistant",
+    "dir": "/system/priv-app/HwPCAssistant"
+  },
+  {
+    "pkg": "com.huawei.phoneservice",
+    "dir": "/system/priv-app/HwPhoneService"
+  },
+  {
+    "pkg": "com.huawei.searchservice",
+    "dir": "/system/priv-app/HwSearchService"
+  },
+  {
+    "pkg": "com.huawei.tips",
+    "dir": "/system/priv-app/HwSmartSuggestion"
+  },
+  {
+    "pkg": "com.huawei.multimedia.hivideoplayengine",
+    "dir": "/system/priv-app/HwVideoKit"
+  },
+  {
+    "pkg": "com.android.wallpapercropper",
+    "dir": "/system/priv-app/WallpaperCropper"
+  },
+  {
+    "pkg": "com.huawei.android.totemweather",
+    "dir": "/system/priv-app/HwWeatherClockHm"
+  },
+  {
+    "pkg": "com.huawei.browser.fa",
+    "dir": "/hw_product/region_comm/china/app/HwBrowserFAHm"
+  },
+  {
+    "pkg": "com.huawei.hidisk.fa",
+    "dir": "/system/app/HwCloudDriveFaHm"
+  },
+  {
+    "pkg": "com.huawei.music",
+    "dir": "/system/priv-app/HwMusic_cloudHm"
+  },
+  {
+    "pkg": "com.huawei.notepad",
+    "dir": "/system/priv-app/HwNotePadHm"
+  },
+  {
+    "pkg": "com.huawei.ohos.health",
+    "dir": "/hw_product/app/HwHealthHm"
+  },
+  {
+    "pkg": "com.huawei.ohos.search",
+    "dir": "/system/priv-app/HiSearchHm"
+  },
+  {
+    "pkg": "com.huawei.ohos.videoeditor",
+    "dir": "/system/app/HwVideoEditorFACard"
+  },
+  {
+    "pkg": "com.huawei.wallet.facard",
+    "dir": "/system/app/HwWalletFAHm"
+  },
+  {
+    "pkg": "com.huawei.himovie",
+    "dir": "/system/priv-app/HiMovie"
+  },
+  {
+    "pkg": "com.huawei.himovie.local",
+    "dir": "/system/priv-app/HiMovieLocal"
+  },
+  {
+    "pkg": "com.huawei.himovie.partner1",
+    "dir": "/system/priv-app/HiMoviePartner1"
+  },
+  {
+    "pkg": "com.huawei.himovie.partner2",
+    "dir": "/system/priv-app/HiMoviePartner2"
+  },
+  {
+    "pkg": "com.tencent.qqlivehuawei",
+    "dir": "/system/priv-app/HiMovieTencent"
+  },
+  {
+    "pkg": "com.huawei.hmos.himovie.fa",
+    "dir": "/system/priv-app/HiCinemaFA"
+  },
+  {
+    "pkg": "com.sohu.sohuvideo.emplayer",
+    "dir": "/system/priv-app/HiMovieSohu"
+  },
+  {
+    "pkg": "com.huawei.hieduservice",
+    "dir": "/hw_product/region_comm/china/app/HiEduService"
+  },
+  {
+    "pkg": "com.huawei.kidsmode",
+    "dir": "/hw_product/app/HwKidsMode"
+  },
+  {
+    "pkg": "com.huawei.hwireader",
+    "dir": "/hw_product/region_comm/china/app/HwReader"
+  },
+  {
+    "pkg": "com.huawei.smarthome",
+    "dir": "/system/priv-app/HiHome"
+  },
+  {
+    "pkg": "com.huawei.android.tips",
+    "dir": "/system/priv-app/HwEmuiManualHm"
+  },
+  {
+    "pkg": "com.huawei.meetime",
+    "dir": "/hw_product/app/HwMeetimeHm"
+  },
+  {
+    "pkg": "com.vmall.client",
+    "dir": "/system/delapp/HwVmall"
+  },
+  {
+    "pkg": "com.huawei.mycenter",
+    "dir": "/system/app/MyCenter"
+  },
+  {
+    "pkg": "com.huawei.educenter",
+    "dir": "/hw_product/region_comm/china/app/HiEdu"
+  },
+  {
+    "pkg": "com.huawei.intelligent",
+    "dir": "/system/priv-app/HwIntelligent"
+  }
+]
