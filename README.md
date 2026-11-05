@@ -1,6 +1,6 @@
 # 圈圈音源 (lx-quanquan-sources)
 
-洛雪音乐（lx-music）自定义音源脚本，从 v3 一路迭代到 v14 的完整留档喵。
+洛雪音乐（lx-music）自定义音源脚本，从 v3 一路迭代到 v15 的完整留档喵。
 
 ## 这是什么
 
@@ -11,7 +11,7 @@
 ## 怎么用
 
 1. 打开洛雪音乐的「设置 → 自定义源 → 导入」喵。
-2. 选仓库根目录的 [`圈圈音源.js`](./圈圈音源.js)（v14 最终版）喵。
+2. 选仓库根目录的 [`圈圈音源.js`](./圈圈音源.js)（v15，五源全直连）喵。
 3. 源列表里会出现「圈圈音源」，启用它即可喵。
 
 脚本向播放器声明了 5 个音乐平台，界面里可以逐个勾选喵：
@@ -24,11 +24,37 @@
 | `wy` | 网易云 | 128k / 320k / flac |
 | `kg` | 酷狗 | 128k / 320k / flac |
 
-> **注意**：声明的是 5 个平台，但 v14 实际的解析分支只有 `Kuwo` 与 `MiGu_Music` 两个端点，`tx / wy / kg` 没有对应的取链逻辑，勾了也不会生效喵。
->
-> 这个收缩发生在 **v10**，不是 v13：v9 时还是五源直连（各自有 `kwGet / txGet / mgGet / kgGet / wyGet` 五个函数，用 `MAP` 分发），v10 起 `sources` 只剩 `kw`，v12 同样只有 `kw`，v13 才补回 `mg`。v13 到 v14 之间 `sources` 块又被写回 5 个，但解析逻辑仍只走两路，属于声明与实际能力不一致喵。
->
-> oiapi 现状实测（2026-11-04）：`Kuwo`、`MiGu_Music` 均返回 200 可用；`QQ_Music` 返回 403「接口暂时无法访问」，`Netease_Music` / `Kugou` / `QQ` / `WY` / `KG` / `Music` 全部 302 重定向喵。
+> **v15 起五个平台全部走真实直连，不再有「声明了但没实现」的平台喵。**
+
+### v15 每条链路（2026-11-05 实测）
+
+| 平台 | 链路 | 实测结果 |
+| --- | --- | --- |
+| `kw` | `mobi.kuwo.cn/mobi.s?type=convert_url_with_sign` | 200，返回 `data.url`（`kw-bj.kuwo.cn/...mp3`）喵 |
+| `tx` | `api.vkeys.cn/v2/music/tencent/geturl` | 200，返回 `data.url`（`ws.stream.qqmusic.qq.com/...mp3?vkey=`）喵 |
+| `wy` | `music.163.com/api/song/enhance/player/url` | 200，有版权曲返回真实 `url`；VIP/无版权曲 `url:null` 并抛 `wy:no url(-110)` 喵 |
+| `mg` | `oiapi.net/api/MiGu_Music` | 200，返回 `data.url`（`freetyst.nf.migu.cn/...mp3`）喵 |
+| `kg` | `m.kugou.com/app/i/getSongInfo.php?cmd=playInfo` | 200，返回 `url` 与 `backup_url`（`sharefs.kugou.com/...mp3`）喵 |
+
+**每源都带「歌名+歌手」搜索兜底**：播放器没给 id 时，先搜一次再取链喵。
+
+- `kw` → `search.kuwo.cn/r.s`（这个接口返回单引号 JS 对象，不是严格 JSON，v15 里做了引号替换后二次解析）喵
+- `tx` → `c.y.qq.com/soso/fcgi-bin/client_search_cp` 取 `mid` 喵
+- `wy` → `music.163.com/api/search/get` 取 `song.id` 喵
+- `kg` → `songsearch.kugou.com/song_search_v2` 取 `FileHash` / `HQFileHash` / `SQFileHash` 喵
+- `mg` → oiapi 自身的 `msg=` 关键词即可喵
+
+### 已知边界（照实写，不修饰）
+
+- **咪咕官方 `listen-url/v2.4` 已全线下线**：无论 `PQ/HQ/SQ`、无论 `contentId` 还是 `copyrightId`、换 host 换 UA，一律返回 `{"code":"200000","info":"歌曲下线暂不支持播放，敬请期待"}`。v15 因此改走 oiapi 的 `MiGu_Music`，这是目前唯一实测能出咪咕链接的路喵。
+- **咪咕链接由 oiapi 转出**，可用性取决于 oiapi 自己的 token，不取决于本脚本喵。
+- **腾讯非 VIP 曲可能只给试听片段**：vkeys 会返回 `"pay":"付费"`、`"kbps":"35kbps"` 这类字段，脚本不判断，直接把 `data.url` 交回去喵。
+- **网易云 `cannotListenReason`**：`1` 表示 VIP 或已下架，此时 `url` 为 `null`，脚本抛 `wy:no url(-110)`，由洛雪按失败处理喵。
+
+### 历史（v14 及以前）
+
+v14 实际只有 `Kuwo` 与 `MiGu_Music` 两个端点有取链逻辑，`tx / wy / kg` 勾了不生效喵。收缩发生在 **v10** 不是 v13：v9 还是五源直连（`kwGet / txGet / mgGet / kgGet / wyGet` 五个函数，`MAP` 分发），v10 起 `sources` 只剩 `kw`，v12 同样只有 `kw`，v13 才补回 `mg`喵。
+
 
 ## 原理：一条链接是怎么拿到的
 
@@ -66,7 +92,8 @@ pickUrl 拆出真实 URL（JS 对象 → 正则 → 裸链接 三级兜底）
 | v11 | 酷我直连秒出 320k |
 | v12 | 多接口兜底 |
 | v13 | 双平台策略成型：酷我 + 咪咕，任一可用即可 |
-| v14 | 修正 musicInfo 解析，**当前最终版** |
+| v14 | 修正 musicInfo 解析 |
+| v15 | **五源全部真实直连 + 搜索兜底，当前最终版** |
 
 看得出来整条路线的重心：**v3–v7 在解决「慢」，v8–v12 在解决「稳」，v13–v14 在解决「对」**喵。
 
@@ -74,8 +101,8 @@ pickUrl 拆出真实 URL（JS 对象 → 正则 → 裸链接 三级兜底）
 
 | 路径 | 内容 |
 | --- | --- |
-| `圈圈音源.js` | 最终版 v14（与 `history/lx_v14.js` 逐字节一致） |
-| `history/` | v3 到 v14 全部 12 个迭代版本 |
+| `圈圈音源.js` | 最终版 v15（与 `history/lx_v15.js` 逐字节一致） |
+| `history/` | v3 到 v15 全部 13 个迭代版本 |
 | `probes/` | 探针与打包产物（`lx_probe*.js`、`lx_bundle.js`） |
 | `sources/` | 收集的第三方音源 |
 | `sources/_upstream/` | 上游最新版快照 |
