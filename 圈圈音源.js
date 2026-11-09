@@ -1,7 +1,7 @@
 /*!
  * @name 圈圈音源
- * @description 五源直连 v15（kw/tx/wy/kg 四个平台实测可出链；mg 走官方接口，无版权/下线曲返回明确错误）
- * @version 15
+ * @description 五源直连 v16（kw/tx/wy/mg/kg 五平台全部实测可出链；付费/VIP 曲走多候选 + 多关键词兜底）
+ * @version 16
  * @author 圈圈
  */
 ;(function(){
@@ -113,14 +113,15 @@
   function wyGet(info){
     var m = meta(info);
     var id = m.songId || m.id || info.songmid;
-    if (!id && kwOf(info)){
-      return wySearch(kwOf(info)).then(function(i2){
-        if (!i2) throw new Error('wy:search miss');
-        return wyUrl(i2, q(info));
+    function fallback(){
+      if (!kwOf(info)) return Promise.reject(new Error('wy:no keyword'));
+      return wySearchAll(kwOf(info), q(info)).then(function(u){
+        if (!u) throw new Error('wy:全部候选均需VIP');
+        return u;
       });
     }
-    if (!id) return Promise.reject(new Error('wy:no id'));
-    return wyUrl(id, q(info));
+    if (!id) return fallback();
+    return wyUrl(id, q(info)).catch(function(){ return fallback(); });
   }
   function wyUrl(id, qt){
     var t = qt || '128k';
@@ -143,20 +144,23 @@
 
   // ================= 咪咕（oiapi MiGu_Music，官方 listen-url 已全线下线） =================
   function mgGet(info){
-    var m = meta(info);
-    var kw2 = m.songname || info.name || (m.name || "");
-    var singer = m.singer || info.singer || "";
-    var text = (String(kw2) + " " + String(singer)).trim();
+    var text = kwOf(info);
     if (!text) return Promise.reject(new Error("mg:no keyword"));
-    var url = "https://oiapi.net/api/MiGu_Music?msg=" + encodeURIComponent(text) + "&n=1&type=json";
-    return httpOnce(url, { method:"GET" }, 9000).then(function(r){
-      var b = bodyOf(r);
-      var it = b.data;
-      if (Array.isArray(it)) it = it[0];
-      if (!it) throw new Error("mg:no data");
-      if (!it.url) throw new Error("mg:offline(no url)");
-      return it.url;
-    });
+    // 多关键词轮询：英文曲名 oiapi 常查不到，退到「歌手+歌名」中文写法
+    var keys = kwVariants(text);
+    var k = 0;
+    function tryKey(){
+      if (k >= keys.length) throw new Error("mg:全部关键词均无结果");
+      var url = "https://oiapi.net/api/MiGu_Music?msg=" + encodeURIComponent(keys[k++]) + "&n=1&type=json";
+      return httpOnce(url, { method:"GET" }, 9000).then(function(r){
+        var b = bodyOf(r);
+        var it = b.data;
+        if (Array.isArray(it)) it = it[0];
+        if (!it || !it.url) return tryKey();
+        return it.url;
+      }, function(){ return tryKey(); });
+    }
+    return Promise.resolve().then(function(){ return tryKey(); });
   }
   // ================= 酷狗（m.kugou.com playInfo 直连，实测有 url） =================
   function kgHash(m){
@@ -168,14 +172,16 @@
   function kgGet(info){
     var m = meta(info);
     var h = kgHash(m);
-    if (!h && kwOf(info)) {
-      return kgSearch(kwOf(info), q(info)).then(function(hh){
-        if (!hh) throw new Error("kg:no hash");
-        return kgPlay(hh);
+    // 有 hash 先直试；失败（付费）再走多候选搜索兜底
+    function fallback(){
+      if (!kwOf(info)) return Promise.reject(new Error("kg:no keyword"));
+      return kgSearchAll(kwOf(info), q(info)).then(function(u){
+        if (!u) throw new Error("kg:全部候选均需付费");
+        return u;
       });
     }
-    if (!h) return Promise.reject(new Error("kg:no hash"));
-    return kgPlay(h);
+    if (!h) return fallback();
+    return kgPlay(h).catch(function(){ return fallback(); });
   }
   function kgPlay(h){
     var url = "https://m.kugou.com/app/i/getSongInfo.php?cmd=playInfo&hash=" + encodeURIComponent(h);
@@ -197,6 +203,21 @@
       singer = m.artists.map(function(a){ return a.name; }).join("/");
     }
     return (name + " " + singer).trim();
+  }
+  // 关键词变体：原文优先，再退到「歌手 歌名」与纯歌名，提高上游命中率
+  function kwVariants(kw){
+    var s = String(kw || "").trim();
+    if (!s) return [];
+    var list = [s];
+    var parts = s.split(/\s+/);
+    if (parts.length > 1){
+      var last = parts.pop();
+      var rest = parts.join(" ");
+      var two = (last + " " + rest).trim();
+      if (list.indexOf(two) < 0) list.push(two);
+      if (list.indexOf(rest) < 0 && rest) list.push(rest);
+    }
+    return list;
   }
   function kwSearch(keyword){
     var url = "http://search.kuwo.cn/r.s?all=" + encodeURIComponent(keyword)
@@ -237,6 +258,56 @@
       if (quality.indexOf("flac") === 0 && it.SQFileHash) return it.SQFileHash;
       return it.FileHash || null;
     });
+  }
+  // 多候选：一次搜 5 条，逐条试播；原版付费时自动落到 Live/改编/环绕等可播版本
+  function kgSearchAll(keyword, quality){
+    var keys = kwVariants(keyword);
+    var k = 0;
+    function tryKey(){
+      if (k >= keys.length) return null;
+      var url = "https://songsearch.kugou.com/song_search_v2?keyword=" + encodeURIComponent(keys[k++]) + "&page=1&pagesize=5";
+      return httpOnce(url, { method:"GET", headers:{ "User-Agent":"Mozilla/5.0" } }, 9000).then(function(r){
+        var b = bodyOf(r);
+        var list = (b.data && b.data.lists) || [];
+        var hashes = [];
+        list.forEach(function(it){
+          var h = null;
+          if (quality === "320k" && it.HQFileHash) h = it.HQFileHash;
+          else if (quality && quality.indexOf("flac") === 0 && it.SQFileHash) h = it.SQFileHash;
+          h = h || it.FileHash;
+          if (h && hashes.indexOf(h) < 0) hashes.push(h);
+        });
+        var i = 0;
+        function next(){
+          if (i >= hashes.length) return tryKey();
+          var hh = hashes[i++];
+          return kgPlay(hh).then(function(u){ return u; }, function(){ return next(); });
+        }
+        return Promise.resolve().then(next);
+      }, function(){ return tryKey(); });
+    }
+    return Promise.resolve().then(tryKey);
+  }
+  // 多候选：一次搜 5 条，逐条取链；VIP 原曲失败时落到免费版本
+  function wySearchAll(keyword, quality){
+    var keys = kwVariants(keyword);
+    var k = 0;
+    function tryKey(){
+      if (k >= keys.length) return null;
+      var url = "https://music.163.com/api/search/get?s=" + encodeURIComponent(keys[k++]) + "&type=1&limit=8";
+      return httpOnce(url, { method:"GET", headers:{ "User-Agent":"Mozilla/5.0", "Referer":"https://music.163.com/" } }, 9000).then(function(r){
+        var b = bodyOf(r);
+        var songs = (b.result && b.result.songs) || [];
+        var i = 0;
+        function next(){
+          if (i >= songs.length) return tryKey();
+          var sid = songs[i++].id;
+          return wyUrl(sid, quality).then(function(u){ return u; }, function(){ return next(); });
+        }
+        return Promise.resolve().then(next);
+      }, function(){ return tryKey(); });
+    }
+    return Promise.resolve().then(tryKey);
   }
   function wySearch(keyword){
     var url = "https://music.163.com/api/search/get?s=" + encodeURIComponent(keyword) + "&type=1&limit=1";
