@@ -1,7 +1,7 @@
 /*!
  * @name 圈圈音源
- * @description 五源直连 v16（kw/tx/wy/mg/kg 五平台全部实测可出链；付费/VIP 曲走多候选 + 多关键词兜底）
- * @version 16
+ * @description 五源直连 v17（kw/tx/wy/mg/kg 五平台全部出链；VIP/付费曲优先取原版完整文件）
+ * @version 17
  * @author 圈圈
  */
 ;(function(){
@@ -64,10 +64,19 @@
     if (!/^\d+$/.test(String(rid))){
       return kwSearch(String(rid)).then(function(r2){
         if (!r2) throw new Error('kw:search miss');
-        return kwUrl(r2, br);
+        return kwUrl(r2, br).catch(function(){ return kwAnti(r2); });
       });
     }
-    return kwUrl(rid, br);
+    return kwUrl(rid, br).catch(function(){ return kwAnti(rid); });
+  }
+  // anti.s：酷我官方转链接口，纯文本直出真实 mp3 地址（无 UA 校验）
+  function kwAnti(rid){
+    var url = 'http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url&rid=MUSIC_' + encodeURIComponent(rid);
+    return httpOnce(url, { method:'GET' }, 8000).then(function(r){
+      var t = String((r && r.body) || '').trim();
+      if (!/^https?:\/\//.test(t)) throw new Error('kw-anti:no url');
+      return t;
+    });
   }
   function kwUrl(rid, br){
     var url0 = 'http://mobi.kuwo.cn/mobi.s?user=0&android_id=0&f=web'
@@ -115,13 +124,40 @@
     var id = m.songId || m.id || info.songmid;
     function fallback(){
       if (!kwOf(info)) return Promise.reject(new Error('wy:no keyword'));
-      return wySearchAll(kwOf(info), q(info)).then(function(u){
-        if (!u) throw new Error('wy:全部候选均需VIP');
+      // ① oiapi Music_163 按「歌名 歌手」精确查，返回的是完整原版文件
+      //    （实测：孤勇者/陈奕迅 官方 -110 不给，oiapi 给 4.1MB 完整 mp3）
+      return wyOiapi(kwOf(info)).catch(function(){
+        // ② 再退到官方搜索多候选
+        return wySearchAll(kwOf(info), q(info));
+      }).then(function(u){
+        if (!u) throw new Error('wy:原版与候选均无可用链接');
         return u;
       });
     }
     if (!id) return fallback();
     return wyUrl(id, q(info)).catch(function(){ return fallback(); });
+  }
+  // oiapi Music_163：参数名是 name（不是 msg），返回 data.url / data.id / data.singers
+  function wyOiapi(keyword){
+    var url = 'https://oiapi.net/api/Music_163?name=' + encodeURIComponent(keyword) + '&n=1&type=json';
+    return httpOnce(url, { method:'GET' }, 10000).then(function(r){
+      var b = bodyOf(r);
+      if (b.code !== 0) throw new Error('wy-oiapi:code ' + b.code);
+      var d = b.data;
+      if (!d || !d.url) throw new Error('wy-oiapi:no url');
+      // 双重校验：歌名要对得上，歌手也要对得上，否则视为拿到翻唱/他人版本
+      var got = String(d.name || '');
+      var gotSinger = (d.singers || []).map(function(s){ return s.name; }).join(' ');
+      if (!nameMatch(got, keyword)) throw new Error('wy-oiapi:歌名不匹配(' + got + ')');
+      var want = String(keyword).split(/\s+/).filter(function(x){ return x; });
+      if (want.length > 1){
+        var wantSinger = normName(want[want.length - 1]);
+        if (wantSinger && normName(gotSinger).indexOf(wantSinger) < 0){
+          throw new Error('wy-oiapi:非原唱(' + gotSinger.trim() + ')');
+        }
+      }
+      return d.url;
+    });
   }
   function wyUrl(id, qt){
     var t = qt || '128k';
@@ -203,6 +239,25 @@
       singer = m.artists.map(function(a){ return a.name; }).join("/");
     }
     return (name + " " + singer).trim();
+  }
+  // 名称匹配：去掉括号后缀、空白、大小写后，核心词必须互相包含
+  function normName(s){
+    return String(s || '')
+      .replace(/[（(【\[].*?[)）】\]]/g, '')
+      .replace(/[\s\.\-_/·]/g, '')
+      .toLowerCase();
+  }
+  function nameMatch(got, want){
+    var a = normName(got), b = normName(want);
+    if (!a || !b) return false;
+    if (a.indexOf(b) >= 0 || b.indexOf(a) >= 0) return true;
+    // 关键词是「歌名 歌手」，逐段比对
+    var parts = String(want).split(/\s+/).filter(function(x){ return x; });
+    if (parts.length > 1){
+      var p = normName(parts[0]);
+      if (p && (a.indexOf(p) >= 0 || p.indexOf(a) >= 0)) return true;
+    }
+    return false;
   }
   // 关键词变体：原文优先，再退到「歌手 歌名」与纯歌名，提高上游命中率
   function kwVariants(kw){
