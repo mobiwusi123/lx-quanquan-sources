@@ -1,7 +1,7 @@
 /*!
  * @name 圈圈音源
- * @description 五源直连 v17（kw/tx/wy/mg/kg 五平台全部出链；VIP/付费曲优先取原版完整文件）
- * @version 17
+ * @description 五源直连 v18（酷我搜索改走 comprehensive musicpage，命中真实原曲；网易云改云搜索+歌名歌手双校验）
+ * @version 18
  * @author 圈圈
  */
 ;(function(){
@@ -58,16 +58,86 @@
   function kwGet(info){
     var m = meta(info);
     var rid = m.songId || m.rid || info.songmid;
-    if (!rid && kwOf(info)){ rid = kwOf(info); }
-    var t = q(info);
-    var br = t.indexOf('flac') === 0 ? 'flac' : (t === '320k' ? '320kmp3' : '128kmp3');
-    if (!/^\d+$/.test(String(rid))){
-      return kwSearch(String(rid)).then(function(r2){
-        if (!r2) throw new Error('kw:search miss');
-        return kwUrl(r2, br).catch(function(){ return kwAnti(r2); });
-      });
+    var want = q(info);
+    var br = kwBr(want);
+    // meta 里给的是真实 rid：直接用，不再二次搜索（二次搜索会命中别的版本）
+    if (/^[0-9]{4,}$/.test(String(rid))){
+      return kwUrl(rid, br).catch(function(){ return kwAnti(rid); });
     }
-    return kwUrl(rid, br).catch(function(){ return kwAnti(rid); });
+    if (!kwOf(info)) return Promise.reject(new Error('kw:no keyword'));
+    return kwSearchAll(kwOf(info), br).then(function(u){
+      if (!u) throw new Error('kw:全部候选无可用链接');
+      return u;
+    });
+  }
+  // 目标音质 → mobi.s 的 br 参数
+  function kwBr(t){
+    if (String(t).indexOf('flac') === 0) return 'flac';
+    return t === '320k' ? '320kmp3' : '128kmp3';
+  }
+  // 搜索多候选：走 comprehensive 接口的 musicpage（返回完整原曲，不是 KTV/翻唱堆）
+  function kwSearchAll(keyword, br){
+    var keys = kwVariants(keyword);
+    var parts = String(keyword || '').split(/\s+/).filter(function(x){ return x; });
+    var wantName = parts[0] || '';
+    var wantSinger = parts.length > 1 ? parts[parts.length - 1] : '';
+    var k = 0;
+    function tryKey(){
+      if (k >= keys.length) return null;
+      var url = 'http://search.kuwo.cn/r.s?correct=1&vipver=1&stype=comprehensive&encoding=utf8'
+        + '&rformat=json&mobi=1&show_copyright_off=1&pcmp4=1&isbang=1'
+        + '&all=' + encodeURIComponent(keys[k++]) + '&pn=0&rn=12';
+      return httpOnce(url, { method:'GET', headers:{ 'User-Agent':'Mozilla/5.0' } }, 9000).then(function(r){
+        var o = null;
+        try { o = JSON.parse(String((r && r.body) || '')); } catch (e1) { o = null; }
+        var list = [];
+        if (o && o.content){
+          o.content.forEach(function(blk){
+            if (blk && blk.musicpage && blk.musicpage.abslist){
+              blk.musicpage.abslist.forEach(function(it){
+                var rid = String(it.MUSICRID || it.DC_TARGETID || '').replace('MUSIC_', '');
+                if (!rid) return;
+                list.push({
+                  rid: rid,
+                  name: unesc(it.SONGNAME || it.NAME || ''),
+                  artist: unesc(it.ARTIST || ''),
+                  minfo: String(it.MINFO || '')
+                });
+              });
+            }
+          });
+        }
+        // 打分：歌名完全相等 > 歌手对上 > 有原版 MINFO（不是 KTV/伴奏/片段）
+        var scored = [];
+        list.forEach(function(it){
+          var nmEq = normName(it.name) === normName(wantName);
+          var nmIn = normName(it.name).indexOf(normName(wantName)) >= 0;
+          if (!nmIn) return;
+          var arEq = wantSinger && String(it.artist).indexOf(wantSinger) >= 0;
+          var bad = /伴奏|KTV|片段|cover|翻唱|Live|现场|DJ|童声|钢琴|古筝/i.test(it.name);
+          var score = (nmEq ? 100 : 50) + (arEq ? 30 : 0) + (it.minfo ? 10 : 0) - (bad ? 60 : 0);
+          scored.push({ it: it, score: score });
+        });
+        scored.sort(function(a, b){ return b.score - a.score; });
+        var i = 0;
+        function next(){
+          if (i >= scored.length) return tryKey();
+          var rid = scored[i++].it.rid;
+          return kwUrl(rid, br)
+            .then(function(u){ return kwGood(u) ? u : next(); })
+            .catch(function(){ return next(); });
+        }
+        return Promise.resolve().then(next);
+      }, function(){ return tryKey(); });
+    }
+    return Promise.resolve().then(tryKey);
+  }
+  function unesc(s){
+    return String(s || '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
+  }
+  // mobi.s 有时给 20000kbps 级别的自压版（听感差），超过 1000kbps 一律视为异常
+  function kwGood(u){
+    return /^https?:\/\//.test(String(u)) && String(u).indexOf('zp') < 0;
   }
   // anti.s：酷我官方转链接口，纯文本直出真实 mp3 地址（无 UA 校验）
   function kwAnti(rid){
@@ -124,11 +194,11 @@
     var id = m.songId || m.id || info.songmid;
     function fallback(){
       if (!kwOf(info)) return Promise.reject(new Error('wy:no keyword'));
-      // ① oiapi Music_163 按「歌名 歌手」精确查，返回的是完整原版文件
-      //    （实测：孤勇者/陈奕迅 官方 -110 不给，oiapi 给 4.1MB 完整 mp3）
-      return wyOiapi(kwOf(info)).catch(function(){
-        // ② 再退到官方搜索多候选
-        return wySearchAll(kwOf(info), q(info));
+      // ① 官方云搜索多候选：先按「歌名+歌手」严格过滤，命中率高且都是官方曲库条目
+      return wySearchAll(kwOf(info), q(info)).then(function(u){
+        if (u) return u;
+        // ② 再退到 oiapi Music_163（歌名+歌手双校验）
+        return wyOiapi(kwOf(info));
       }).then(function(u){
         if (!u) throw new Error('wy:原版与候选均无可用链接');
         return u;
@@ -346,17 +416,32 @@
   // 多候选：一次搜 5 条，逐条取链；VIP 原曲失败时落到免费版本
   function wySearchAll(keyword, quality){
     var keys = kwVariants(keyword);
+    // 关键词拆出「歌名」「歌手」，用于候选校验
+    var parts = String(keyword || "").split(/\s+/).filter(function(x){ return x; });
+    var wantName = parts[0] || "";
+    var wantSinger = parts.length > 1 ? parts[parts.length - 1] : "";
     var k = 0;
     function tryKey(){
       if (k >= keys.length) return null;
-      var url = "https://music.163.com/api/search/get?s=" + encodeURIComponent(keys[k++]) + "&type=1&limit=8";
+      var url = "https://music.163.com/api/cloudsearch/pc?s=" + encodeURIComponent(keys[k++]) + "&type=1&limit=10&offset=0";
       return httpOnce(url, { method:"GET", headers:{ "User-Agent":"Mozilla/5.0", "Referer":"https://music.163.com/" } }, 9000).then(function(r){
         var b = bodyOf(r);
         var songs = (b.result && b.result.songs) || [];
+        // 先严格匹配（歌名相符 + 歌手相符），再放宽（只要求歌名相符）
+        var strict = [], loose = [];
+        songs.forEach(function(so){
+          var nm = String(so.name || "");
+          var ar = (so.ar || so.artists || []).map(function(x){ return x.name; }).join("/");
+          var nmOk = normName(nm).indexOf(normName(wantName)) >= 0;
+          if (!nmOk) return;
+          var arOk = !wantSinger || ar.indexOf(wantSinger) >= 0;
+          (arOk ? strict : loose).push(so);
+        });
+        var ordered = strict.concat(loose);
         var i = 0;
         function next(){
-          if (i >= songs.length) return tryKey();
-          var sid = songs[i++].id;
+          if (i >= ordered.length) return tryKey();
+          var sid = ordered[i++].id;
           return wyUrl(sid, quality).then(function(u){ return u; }, function(){ return next(); });
         }
         return Promise.resolve().then(next);
